@@ -1,0 +1,9 @@
+[project]
+name = "notification-service"
+version = "0.1.0"
+description = "Notification consumer service for Queuecert"
+requires-python = ">=3.11"
+dependencies = [
+    "confluent-kafka>=2.3.0",
+    "python-dotenv>=1.2.1",
+]

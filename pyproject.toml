@@ -1,0 +1,10 @@
+[project]
+name = "queuecert"
+version = "0.1.0"
+description = "Concert ticket booking system powered by Kafka, FastAPI, PostgreSQL, and Redis."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.uv.workspace]
+members = ["booking-service", "seat-service", "notification-service"]

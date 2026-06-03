@@ -1,0 +1,14 @@
+[project]
+name = "seat-service"
+version = "0.1.0"
+description = "Seat locking consumer service for Queuecert"
+requires-python = ">=3.11"
+dependencies = [
+    "confluent-kafka>=2.3.0",
+    "sqlalchemy>=2.0.0",
+    "asyncpg>=0.30.0",
+    "redis>=5.0.0",
+    "pydantic>=2.0.0",
+    "python-dotenv>=1.2.1",
+    "greenlet>=3.0.0",
+]
