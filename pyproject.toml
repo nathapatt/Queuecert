@@ -4,7 +4,10 @@ version = "0.1.0"
 description = "Concert ticket booking system powered by Kafka, FastAPI, PostgreSQL, and Redis."
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "asyncpg>=0.31.0",
+    "python-dotenv>=1.2.2",
+]
 
 [tool.uv.workspace]
 members = ["booking-service", "seat-service", "notification-service"]

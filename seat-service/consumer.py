@@ -61,7 +61,7 @@ def update_raw_sql(table: str, row_id: str, column: str, value: str):
     """Build a raw SQL update statement to avoid cross-service model imports."""
     from sqlalchemy import text
 
-    return text(f"UPDATE {table} SET {column} = :value WHERE id = :id").bindparams(
+    return text(f"UPDATE {table} SET {column} = :value WHERE id = CAST(:id AS UUID)").bindparams(
         value=value, id=row_id
     )
 
