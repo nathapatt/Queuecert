@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
 from fastapi import FastAPI, HTTPException, Depends
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -36,6 +37,15 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Queuecert Booking Service", lifespan=lifespan)
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow all origins for development
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/health")
@@ -97,6 +107,46 @@ async def create_booking(
         status="pending",
         message="Booking request received and is being processed",
     )
+
+
+@app.get("/concerts")
+async def get_concerts(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Concert))
+    concerts = result.scalars().all()
+    return [
+        {
+            "id": str(concert.id),
+            "name": concert.name,
+            "venue": concert.venue,
+            "event_date": concert.event_date.isoformat(),
+        }
+        for concert in concerts
+    ]
+
+
+@app.get("/concerts/{concert_id}/seats")
+async def get_concert_seats(
+    concert_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+):
+    # Verify concert exists
+    result = await db.execute(select(Concert).where(Concert.id == concert_id))
+    concert = result.scalar_one_or_none()
+    if concert is None:
+        raise HTTPException(status_code=404, detail="Concert not found")
+
+    # Get seats for this concert
+    result = await db.execute(select(Seat).where(Seat.concert_id == concert_id))
+    seats = result.scalars().all()
+    return [
+        {
+            "id": str(seat.id),
+            "row": seat.row,
+            "number": seat.number,
+            "status": seat.status,
+        }
+        for seat in seats
+    ]
 
 
 @app.get("/bookings/{booking_id}", response_model=BookingResponse)

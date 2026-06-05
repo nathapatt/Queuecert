@@ -83,6 +83,18 @@ async def process_message(
 
     logger.info("Processing booking %s for seat %s", booking_id, seat_id)
 
+    # Idempotency check: skip if booking already processed
+    async with async_session() as session:
+        from sqlalchemy import text
+        result = await session.execute(
+            text("SELECT status FROM bookings WHERE id = CAST(:id AS UUID)").bindparams(id=booking_id)
+        )
+        booking_status = result.scalar_one_or_none()
+
+        if booking_status and booking_status != "pending":
+            logger.info("Booking %s already processed (status: %s), skipping", booking_id, booking_status)
+            return
+
     # Attempt to lock the seat
     locked = await locker.lock(seat_id)
 

@@ -29,13 +29,20 @@ class KafkaProducer:
 
     def produce(self, topic: str, message: dict) -> None:
         """Serialize message to JSON, produce to topic, and flush."""
-        payload = json.dumps(message, default=str)
-        self._producer.produce(
-            topic,
-            value=payload.encode("utf-8"),
-            callback=self._delivery_report,
-        )
-        self._producer.flush()
+        try:
+            payload = json.dumps(message, default=str)
+            self._producer.produce(
+                topic,
+                value=payload.encode("utf-8"),
+                callback=self._delivery_report,
+            )
+            # Add timeout to prevent blocking indefinitely
+            remaining = self._producer.flush(timeout=5.0)
+            if remaining > 0:
+                logger.warning("Failed to flush %d messages within timeout", remaining)
+        except Exception as e:
+            logger.error("Failed to produce message to topic %s: %s", topic, e)
+            raise
 
     def close(self) -> None:
         """Flush remaining messages."""
