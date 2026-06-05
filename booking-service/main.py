@@ -54,11 +54,13 @@ async def create_booking(
     if concert is None:
         raise HTTPException(status_code=404, detail="Concert not found")
 
-    # Validate seat exists
+    # Validate seat exists and is available
     result = await db.execute(select(Seat).where(Seat.id == request.seat_id))
     seat = result.scalar_one_or_none()
     if seat is None:
         raise HTTPException(status_code=404, detail="Seat not found")
+    if seat.status != "available":
+        raise HTTPException(status_code=409, detail=f"Seat is already {seat.status}")
 
     # Create booking with pending status
     booking = Booking(

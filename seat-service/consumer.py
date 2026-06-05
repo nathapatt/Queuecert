@@ -11,7 +11,6 @@ from datetime import datetime, timezone
 
 from confluent_kafka import Consumer, Producer
 from dotenv import load_dotenv
-from sqlalchemy import update
 
 from database import async_session, engine
 from locker import SeatLocker
@@ -60,6 +59,11 @@ async def _update_booking_status(booking_id: str, status: str) -> None:
 def update_raw_sql(table: str, row_id: str, column: str, value: str):
     """Build a raw SQL update statement to avoid cross-service model imports."""
     from sqlalchemy import text
+
+    if table == "seats":
+        return text(
+            f"UPDATE {table} SET {column} = :value, updated_at = now() WHERE id = CAST(:id AS UUID)"
+        ).bindparams(value=value, id=row_id)
 
     return text(f"UPDATE {table} SET {column} = :value WHERE id = CAST(:id AS UUID)").bindparams(
         value=value, id=row_id

@@ -44,7 +44,7 @@ USERS = [
 
 async def seed():
     conn = await asyncpg.connect(DATABASE_URL)
-    print("🌱 Seeding database...\n")
+    print("[SEED] Seeding database...\n")
 
     all_data = []   # collect for curl summary
 
@@ -60,9 +60,9 @@ async def seed():
             concert_id = await conn.fetchval(
                 "SELECT id FROM concerts WHERE name = $1", c["name"]
             )
-            print(f"⚠️  Concert already exists — {c['name']}: {concert_id}")
+            print(f"[SKIP] Concert already exists -- {c['name']}: {concert_id}")
         else:
-            print(f"✅ Concert created  — {c['name']}: {concert_id}")
+            print(f"[OK] Concert created -- {c['name']}: {concert_id}")
 
         seats = []
         for row in c["rows"]:
@@ -103,11 +103,11 @@ async def seed():
         avail = d["available_seat"]
         booked = d["booked_seat"]
 
-        print(f"\n📍 {d['concert']}")
+        print(f"\n>> {d['concert']}")
         print(f"   concert_id : {d['concert_id']}")
 
         if avail:
-            print(f"\n   ✅ Normal booking (should succeed) — user: {username}")
+            print(f"\n   [OK] Normal booking (should succeed) -- user: {username}")
             print(f"""   curl -X POST http://localhost:8000/bookings \\
      -H "Content-Type: application/json" \\
      -d '{{
@@ -117,7 +117,7 @@ async def seed():
      }}'""")
 
         if booked:
-            print(f"\n   ❌ Double booking (should fail) — seat {booked['row']}{booked['number']} pre-booked")
+            print(f"\n   [FAIL] Double booking (should fail) -- seat {booked['row']}{booked['number']} pre-booked")
             print(f"""   curl -X POST http://localhost:8000/bookings \\
      -H "Content-Type: application/json" \\
      -d '{{
@@ -134,7 +134,7 @@ async def seed():
 """)
 
     await conn.close()
-    print("✅ Seed complete")
+    print("[DONE] Seed complete")
 
 
 if __name__ == "__main__":

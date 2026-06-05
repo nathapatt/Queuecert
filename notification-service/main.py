@@ -3,7 +3,6 @@
 import json
 import logging
 import signal
-import sys
 
 from consumer import create_consumer, process_message
 

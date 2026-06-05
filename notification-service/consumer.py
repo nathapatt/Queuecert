@@ -34,8 +34,8 @@ def process_message(topic: str, msg_value: dict) -> None:
     user_id = msg_value.get("user_id", "unknown")
 
     if topic == "booking.confirmed":
-        logger.info("✅ Booking %s confirmed for user %s", booking_id, user_id)
+        logger.info("[CONFIRMED] Booking %s confirmed for user %s", booking_id, user_id)
     elif topic == "booking.failed":
-        logger.info("❌ Booking %s failed for user %s", booking_id, user_id)
+        logger.info("[FAILED] Booking %s failed for user %s", booking_id, user_id)
     else:
-        logger.warning("Unknown topic: %s", topic)
+        logger.warning("[UNKNOWN] Unhandled topic: %s", topic)
