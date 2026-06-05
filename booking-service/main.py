@@ -10,7 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import engine, get_db
-from models import Base, Booking, Concert, Seat
+from models import Base, Booking, Concert, Seat, User
 from producer import KafkaProducer
 from schemas import BookingRequest, BookingResponse
 
@@ -48,6 +48,12 @@ async def create_booking(
     request: BookingRequest,
     db: AsyncSession = Depends(get_db),
 ):
+    # Validate user exists
+    result = await db.execute(select(User).where(User.id == request.user_id))
+    user = result.scalar_one_or_none()
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+
     # Validate concert exists
     result = await db.execute(select(Concert).where(Concert.id == request.concert_id))
     concert = result.scalar_one_or_none()

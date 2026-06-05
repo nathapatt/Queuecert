@@ -34,17 +34,31 @@ CONCERTS = [
     },
 ]
 
-# dummy users for curl examples
+# Deterministic test users (proper UUID v4 format)
 USERS = [
-    ("11111111-1111-1111-1111-111111111111", "alice"),
-    ("22222222-2222-2222-2222-222222222222", "bob"),
-    ("33333333-3333-3333-3333-333333333333", "charlie"),
+    ("a3f1b2c4-7d8e-4a9f-b6c1-2e3d4f5a6b7c", "alice", "alice@example.com"),
+    ("b8e2d4f6-1c3a-4e5b-9d7f-8a6c2e4b1d3f", "bob", "bob@example.com"),
+    ("c5d9e7a1-3b6f-4c8d-a2e4-7f1b9d3c5a8e", "charlie", "charlie@example.com"),
 ]
 
 
 async def seed():
     conn = await asyncpg.connect(DATABASE_URL)
     print("[SEED] Seeding database...\n")
+
+    # ── Insert users ───────────────────────────────────────────────
+    for user_id, name, email in USERS:
+        inserted = await conn.fetchval("""
+            INSERT INTO users (id, email, name, hashed_password)
+            VALUES ($1, $2, $3, $4)
+            ON CONFLICT (id) DO NOTHING
+            RETURNING id
+        """, uuid.UUID(user_id), email, name, "placeholder_hash")
+        if inserted:
+            print(f"[OK] User created -- {name} ({email}): {user_id}")
+        else:
+            print(f"[SKIP] User already exists -- {name}: {user_id}")
+    print()
 
     all_data = []   # collect for curl summary
 
@@ -99,7 +113,7 @@ async def seed():
     print("=" * 60)
 
     for i, d in enumerate(all_data):
-        user_id, username = USERS[i % len(USERS)]
+        user_id, username, _ = USERS[i % len(USERS)]
         avail = d["available_seat"]
         booked = d["booked_seat"]
 

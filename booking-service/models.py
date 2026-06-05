@@ -1,4 +1,4 @@
-"""SQLAlchemy ORM models for concerts, seats, and bookings."""
+"""SQLAlchemy ORM models for users, concerts, seats, and bookings."""
 
 import uuid
 from datetime import datetime, timezone
@@ -51,6 +51,23 @@ class Seat(Base):
     )
 
 
+class User(Base):
+    __tablename__ = "users"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        server_default=text("gen_random_uuid()"),
+    )
+    email: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
+    name: Mapped[str] = mapped_column(Text, nullable=False)
+    hashed_password: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True),
+        server_default=text("now()"),
+    )
+
+
 class Booking(Base):
     __tablename__ = "bookings"
 
@@ -59,7 +76,9 @@ class Booking(Base):
         primary_key=True,
         server_default=text("gen_random_uuid()"),
     )
-    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id")
+    )
     concert_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("concerts.id")
     )
